@@ -1,0 +1,6 @@
+hf_models/**
+torch_models/**
+**.mp3
+**.wav
+.cog/**
+**/__pycache__/**
