@@ -14,13 +14,18 @@ build:
 
   # a list of packages in the format <package-name>==<version>
   python_packages:
-    - "torch==2.0"
-    - "torchaudio==2.0.0"
-    - "git+https://github.com/m-bain/whisperX.git@befe2b242eb59dcd7a8a122d127614d5c63d36e9"
-    - "faster-whisper==0.6.0"
+    - "transformers"
+    - "flax"
+    # - "torchaudio==2.0.0"
+    # - "git+https://github.com/m-bain/whisperX.git@befe2b242eb59dcd7a8a122d127614d5c63d36e9"
+    # - "faster-whisper==0.6.0"
 
   run: 
     - "pip install ipython"
+    - "pip install --upgrade pip"
+    - "pip install --upgrade jax[cpu]"
+    - "pip install --upgrade jax[cuda11_pip] -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html"
+    - "pip install git+https://github.com/sanchit-gandhi/whisper-jax.git"
 
 predict: 'predict.py:Predictor'
 
