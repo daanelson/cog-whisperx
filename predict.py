@@ -6,7 +6,7 @@ os.environ['TORCH_HOME'] = '/src/torch_models'
 from cog import BasePredictor, Input, Path
 import torch
 import whisperx
-import json
+from typing import Any
 
 
 compute_type="float16"
@@ -24,7 +24,7 @@ class Predictor(BasePredictor):
         #align_output: bool = Input(description="Use if you need word-level timing and not just batched transcription", default=False),
         only_text: bool = Input(description="Set if you only want to return text; otherwise, segment metadata will be returned as well.", default=False),
         debug: bool = Input(description="Print out memory usage information.", default=False)
-    ) -> str:
+    ) -> Any:
         """Run a single prediction on the model"""
         with torch.inference_mode():
             result = self.model.transcribe(str(audio), batch_size=batch_size) 
@@ -42,5 +42,5 @@ class Predictor(BasePredictor):
                 return ''.join([val.text for val in result['segments']])
             if debug:
                 print(f"max gpu memory allocated over runtime: {torch.cuda.max_memory_reserved() / (1024 ** 3):.2f} GB")
-        return json.dumps(result['segments'])
+        return result['segments']
 
