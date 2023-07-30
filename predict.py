@@ -14,7 +14,7 @@ class Predictor(BasePredictor):
     def setup(self):
         """Load the model into memory to make running multiple predictions efficient"""
         self.device = "cuda"
-        self.model = whisperx.load_model("large-v2", self.device, language="en", compute_type=compute_type)
+        self.model = whisperx.load_model("large-v2", self.device, compute_type=compute_type)
         self.alignment_model, self.metadata = whisperx.load_align_model(language_code="en", device=self.device)
 
     def predict(
