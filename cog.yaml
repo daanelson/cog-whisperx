@@ -17,6 +17,7 @@ build:
     - "torch==2.0"
     - "torchaudio==2.0.0"
     - "git+https://github.com/m-bain/whisperX.git@befe2b242eb59dcd7a8a122d127614d5c63d36e9"
+    - "yt-dlp==2023.10.13"
 
   run: 
     - "pip install ipython"

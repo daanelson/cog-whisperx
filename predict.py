@@ -7,6 +7,7 @@ from cog import BasePredictor, Input, Path
 import torch
 import whisperx
 import json
+import yt_dlp
 
 
 compute_type="float16"
@@ -19,28 +20,47 @@ class Predictor(BasePredictor):
 
     def predict(
         self,
-        audio: Path = Input(description="Audio file"),
-        batch_size: int = Input(description="Parallelization of input audio transcription", default=32),
-        align_output: bool = Input(description="Use if you need word-level timing and not just batched transcription", default=False),
-        only_text: bool = Input(description="Set if you only want to return text; otherwise, segment metadata will be returned as well.", default=False),
-        debug: bool = Input(description="Print out memory usage information.", default=False)
+        youtube_video_url: str = Input(description="YouTube video URL to transcribe"),
     ) -> str:
         """Run a single prediction on the model"""
         with torch.inference_mode():
-            result = self.model.transcribe(str(audio), batch_size=batch_size) 
-            # result is dict w/keys ['segments', 'language']
-            # segments is a list of dicts,each dict has {'text': <text>, 'start': <start_time_msec>, 'end': <end_time_msec> }
-            if align_output:
-                # NOTE - the "only_text" flag makes no sense with this flag, but we'll do it anyway
-                result = whisperx.align(result['segments'], self.alignment_model, self.metadata, str(audio), self.device, return_char_alignments=False)
-                # dict w/keys ['segments', 'word_segments']
-                # aligned_result['word_segments'] = list[dict], each dict contains {'word': <word>, 'start': <start_time_msec>, 'end': <end_time_msec>, 'score': probability}
-                #   it is also sorted
-                # aligned_result['segments'] - same as result segments, but w/a ['words'] segment which contains timing information above. 
-                # return_char_alignments adds in character level alignments. it is: too many. 
-            if only_text:
-                return ''.join([val.text for val in result['segments']])
-            if debug:
-                print(f"max gpu memory allocated over runtime: {torch.cuda.max_memory_reserved() / (1024 ** 3):.2f} GB")
+            audio_file_path = download_youtube_video_as_m4a(youtube_video_url)
+            audio_file = open(audio_file_path, 'rb')
+            audio = whisperx.load_audio(audio_file)
+            result = self.model.transcribe(audio, batch_size=32)
         return json.dumps(result['segments'])
 
+
+
+
+
+
+
+def download_youtube_video_as_m4a(url, output_path="."):
+    """
+    Downloads a YouTube video using the yt_dlp Python package and saves it as an m4a file.
+
+    :param url: The URL of the YouTube video to download.
+    :param output_path: Directory where the m4a file will be saved.
+    :return: The filename of the downloaded file.
+    """
+
+    # This will hold our downloaded filename
+    downloaded_filename = None
+
+    def hook(d):
+        nonlocal downloaded_filename
+        if d['status'] == 'finished':
+            downloaded_filename = d['filename']
+
+    options = {
+        'format': 'bestaudio[ext=m4a]',  # Get the best m4a audio
+        'merge_output_format': 'm4a',    # Ensure the output format is m4a
+        'outtmpl': f'{output_path}/%(title)s.%(ext)s',  # Define the output filename format
+        'progress_hooks': [hook],  # Add our hook
+    }
+
+    with yt_dlp.YoutubeDL(options) as ydl:
+        ydl.download([url])
+
+    return downloaded_filename

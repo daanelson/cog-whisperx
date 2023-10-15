@@ -1,0 +1,13 @@
+#!/bin/bash
+
+
+LATEST_VERSION=$(curl -s \
+  -H "Authorization: Token $REPLICATE_API_TOKEN" \
+  https://api.replicate.com/v1/models/zeke/zisper/versions | jq -r ".results[-1].id")
+
+echo $LATEST_VERSION
+
+yolo push \
+  --base r8.im/zeke/zisper@sha256:$LATEST_VERSION \
+  --dest r8.im/zeke/zisper \
+  .dockerignore README.md cog.yaml predict.py
