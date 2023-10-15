@@ -10,4 +10,5 @@ echo $LATEST_VERSION
 yolo push \
   --base r8.im/zeke/zisper@sha256:$LATEST_VERSION \
   --dest r8.im/zeke/zisper \
+  --ast predict.py \
   .dockerignore README.md cog.yaml predict.py
